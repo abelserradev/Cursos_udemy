@@ -2,9 +2,10 @@ from flask import Flask, request, render_template_string, jsonify
 from models.article import Article
 from models.user import User
 from models import db
+from flask_cors import CORS
 
 app = Flask(__name__)
-
+CORS(app)
 
 # Configuración de la base de datos
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'

@@ -1,2 +1,3 @@
-flask
-SQLAlchemy
+Flask
+Flask-SQLAlchemy
+flask-cors
