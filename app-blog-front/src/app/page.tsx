@@ -2,11 +2,13 @@
 import { useEffect, useState } from "react";
 import Layout from "./components/Layout";
 import Link from 'next/link';
+import Card from "./components/Card";
 
 interface Article {
   id: number;
   title: string;
   content: string;
+  img_url: string;
 }
 
 export default function Home() {
@@ -32,13 +34,13 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grip-cols-3 gap-8">
           {
             articles.map((article) =>(
-              <div key={article.id} className="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300">
-                <h2 className="text-2xl font-bold text-indigo-600 mb-2">{article.title}</h2>
-                <p className="text-black">{article.content.slice(0, 100)}...</p>
-                <Link href={`/article/${article.id}`}>
-                  <span className="text-indigo-600 font-semibold hover:text-indigo-400">Leer más</span>
-                </Link>
-              </div>
+              <Card 
+              key={article.id} 
+              id={article.id} 
+              title={article.title} 
+              content={article.content}
+              img_url={article.img_url}
+              />
             ))
           }
 

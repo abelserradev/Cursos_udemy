@@ -1,11 +1,13 @@
-from flask import Flask, request, render_template_string, jsonify
+from flask import Flask, request, render_template_string, jsonify, session
 from models.article import Article
 from models.user import User
 from models import db
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True)
+
+app.secret_key = 'hola_mundo'
 
 # Configuración de la base de datos
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
@@ -43,14 +45,39 @@ def register_user():
 def login_user():
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
-    if user is None or not user.check_password(data['password']):
+    if user and user.check_password(data['password']):
+        session['user_id'] = user.id
+        return jsonify({
+            'message': f'Bienvenido {user.username}!'
+        }), 200 
+    else:
         return jsonify({
             'error': 'Credenciales inválidas.'
         }), 401
     
+
+@app.route('/check-auth', methods=['GET'])
+def check_auth():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            return jsonify({
+                'isAuthenticated': True,
+                'message': f'Usuario autenticado: {user.username}'
+            }), 200
+        
     return jsonify({
-        'message': f'Bienvenido, {user.username}!'
-    })
+        'isAuthenticated': False,
+        'error': 'No autenticado.'
+    }), 401
+
+@app.route('/logout', methods=['POST'])
+def logout_user():
+    session.pop('user_id', None)
+    return jsonify({
+        'message': 'Sesión cerrada con éxito.'
+    }), 200
+    
 
 
 # Obtenemos todos los articulos
@@ -60,7 +87,8 @@ def get_articles():
     return jsonify([{
         'id': article.id,
         'title': article.title,
-        'content': article.content
+        'content': article.content,
+        'img_url': article.img_url
     } for article in articles
     ])
 
@@ -71,14 +99,16 @@ def create_article():
     data = request.get_json()
     new_article = Article(
         title=data['title'],
-        content=data['content']
+        content=data['content'],
+        img_url=data['img_url']
     )
     db.session.add(new_article)
     db.session.commit()
     return jsonify({
         'id': new_article.id,
         'title': new_article.title,
-        'content': new_article.content
+        'content': new_article.content,
+        'img_url': new_article.img_url
     }), 201
 
 # Actualizamos los articulos
